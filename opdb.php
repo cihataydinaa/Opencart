@@ -8,12 +8,12 @@ require_once './config.php';
 else {
 die("Aborting: config.php not found!");
 }
-if(!$db = turbo_db_connect()) {
+if(!$db = cueh_db_connect()) {
 die("Unable to connect to DB - Check Settings");
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -34,8 +34,8 @@ die("Unable to connect to DB - Check Settings");
 <h3 class="panel-title">Seçenekler</h3>
 </div>
 <div class="panel-body">
-<a href="turbo.php?action=engine" class="btn btn-success btn-lg" onclick="return confirm('Opencart veritabanı tablolarınızı MyISAM'den InnoDB'ye dönüştürmek istediğinizden emin misiniz??');">Veritabanını Değiştir</a><br><br>
-<a href="turbo.php?action=indexes" class="btn btn-success btn-lg" onclick="return confirm('Opencart veritabanı tablolarınıza İndeks eklemek istediğinizden emin misiniz?');">Veritabanındaki Dizinleri Getir</a>
+<a href="cueh.php?action=engine" class="btn btn-success btn-lg" onclick="return confirm('Opencart veritabanı tablolarınızı MyISAM'den InnoDB'ye dönüştürmek istediğinizden emin misiniz??');">Veritabanını Değiştir</a><br><br>
+<a href="cueh.php?action=indexes" class="btn btn-success btn-lg" onclick="return confirm('Opencart veritabanı tablolarınıza İndeks eklemek istediğinizden emin misiniz?');">Veritabanını İndexle</a>
 </div>
 </div>
 <div class="panel panel-default">
@@ -46,10 +46,10 @@ die("Unable to connect to DB - Check Settings");
 <p><?php
 switch($action) {
 case 'engine':
-turbo_switch_engine();
+cueh_switch_engine();
 break;
 case 'indexes':
-turbo_table_indexes();
+cueh_table_indexes();
 break;
 case 'delete':
 // Nothing yet
@@ -66,11 +66,11 @@ break;
 </body>
 </html>
 <?php
-function turbo_table_indexes() {
+function cueh_table_indexes() {
 global $db, $index_list;
-$tables = turbo_get_tables(true);
+$tables = cueh_get_tables(true);
 if($tables && count($tables) > 0) {
-turbo_log("Tablolara Dizin Ekleme");
+cueh_log("Tablolara Dizin Ekleme");
 // Loop through Tables
 foreach($tables as $table_name => $table) {
 // Loop through Columns
@@ -99,55 +99,55 @@ if(!$has_index && $needs_index) {
 // Has no Index and needs an Index
 $sql = "ALTER TABLE `{$table_name}` ADD INDEX (  `{$column_name}` )";
 if($output = $db->query($sql)) {
-turbo_log("{$table_name}.{$column_name} - Dizin Eklendi",'success','BAŞARILI');
+cueh_log("{$table_name}.{$column_name} - Dizin Eklendi",'success','BAŞARILI');
 }
 else {
-turbo_log("{$table_name}.{$column_name} - Dizin Eklenemedi - ".$db->error,'danger','HATA');
+cueh_log("{$table_name}.{$column_name} - Dizin Eklenemedi - ".$db->error,'danger','HATA');
 }
 }
 elseif($needs_index) {
 // Needs an Index but already has one
-turbo_log("{$table_name}.{$column_name} - Dizin Zaten Var",'info','BİLGİ');
+cueh_log("{$table_name}.{$column_name} - Dizin Zaten Var",'info','BİLGİ');
 }
 }
 }
 }
 else {
-turbo_log("İptal",'danger','HATA');
+cueh_log("İptal",'danger','HATA');
 }
 }
-function turbo_switch_engine() {
+function cueh_switch_engine() {
 global $db;
-$tables = turbo_get_tables();
+$tables = cueh_get_tables();
 if($tables && count($tables) > 0) {
-turbo_log("Veritabanı Değişimi Başladı");
+cueh_log("Veritabanı Değişimi Başladı");
 foreach ($tables as $table_name => $table) {
 if($table['engine'] != 'InnoDB') {
 $sql = "ALTER TABLE `{$table_name}` ENGINE = INNODB";
 if($rs = $db->query($sql)) {
-turbo_log("{$table_name} {$table['engine']} 'dan InnoDB",'success','Başarılı');
+cueh_log("{$table_name} {$table['engine']} 'dan InnoDB",'success','Başarılı');
 }
 else {
-turbo_log("{$table_name} Motor Anahtarı Başarısız - ".$db->error,'danger','HATA');
-}
-}
-else {
-turbo_log("{$table_name} Zaten InnoDB",'info','Çevrilmiş');
-}
+cueh_log("{$table_name} Motor Anahtarı Başarısız - ".$db->error,'danger','HATA');
 }
 }
 else {
-turbo_log("İptal",'danger','ERROR');
+cueh_log("{$table_name} Zaten InnoDB",'info','Çevrilmiş');
 }
 }
-function turbo_get_tables($getindexes=false) {
+}
+else {
+cueh_log("İptal",'danger','ERROR');
+}
+}
+function cueh_get_tables($getindexes=false) {
 global $db;
 $tables = false;
 $sql = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE '".DB_DATABASE."'";
 if($rs = $db->query($sql)) {
 if($rs->num_rows > 0) {
 // Table list loaded
-turbo_log("{$rs->num_rows} Tablo");
+cueh_log("{$rs->num_rows} Tablo");
 $tables = array();
 while ($row = $rs->fetch_assoc()) {
 $table               = array();
@@ -194,7 +194,7 @@ $table['columns'][$column['name']] = $column;
 }
 }
 else {
-turbo_log("Tabloda DB Sütunu Bulunamadı {$table['name']}",'danger','Hata');
+cueh_log("Tabloda DB Sütunu Bulunamadı {$table['name']}",'danger','Hata');
 }
 }
 $tables[$table['name']] = $table;
@@ -202,15 +202,15 @@ $tables[$table['name']] = $table;
 }
 else {
 // No tables found
-turbo_log("Veritabanı Tablosu Bulunamadı",'danger','Hata');
+cueh_log("Veritabanı Tablosu Bulunamadı",'danger','Hata');
 }
 }
 else {
-turbo_log("Hata: DB Tablo Listesi alınamıyor");
+cueh_log("Hata: DB Tablo Listesi alınamıyor");
 }
 return $tables;
 }
-function turbo_log($input,$type='default',$label='') {
+function cueh_log($input,$type='default',$label='') {
 if($label) {
 echo '<span class="label label-'.$type.'">'.$label.'</span> ';
 }
@@ -220,7 +220,7 @@ echo $input."<br>";
 * Connect to Database using Config Settings
 * @return MySQLi Connection Object
 */
-function turbo_db_connect() {
+function cueh_db_connect() {
 $db = new mysqli(DB_HOSTNAME, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
 return $db;
 }
